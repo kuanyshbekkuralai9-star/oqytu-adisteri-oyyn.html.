@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Оқыту әдістері: Түнгі жорық</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --night-top:#10163f; --night-mid:#1d2268; --night-low:#0f3b4a;
+  --card-a:#2c1b63; --card-b:#190f42;
+  --gold:#ffb347; --cream:#fff1c9; --road:#e8912d; --purple:#5b2a9d;
+  --ink:#ffffff; --ok:#86efac; --bad:#fca5a5;
+  --font:'Nunito','Segoe UI',Roboto,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);background:#0b0f2a}
+body{margin:0;height:100%;background:#0b0f2a;color:var(--ink);font-family:var(--font);overflow:hidden;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#app{height:100%;display:grid;grid-template-rows:auto 1fr;position:relative}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;
+  background:rgba(8,10,36,.75);border-bottom:3px solid var(--gold);z-index:2}
+header h1{margin:0;font-size:clamp(17px,2.6vw,30px);font-weight:900;letter-spacing:.2px}
+.hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.pill{background:#2c1b63;border:2px solid var(--gold);border-radius:999px;padding:5px 16px;font-weight:800;font-size:clamp(14px,1.9vw,22px);white-space:nowrap}
+.ibtn{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);background:#2c1b63;color:#fff;font-size:22px;cursor:pointer;display:grid;place-items:center}
+.ibtn:focus-visible,.opt:focus-visible,.btn:focus-visible{outline:4px solid #fff;outline-offset:3px}
+
+#stage{position:relative;min-height:0;overflow:hidden;
+  background:
+   radial-gradient(2px 2px at 8% 12%,#fff 60%,transparent),radial-gradient(2px 2px at 22% 30%,#fff 60%,transparent),
+   radial-gradient(1.5px 1.5px at 35% 8%,#fff 60%,transparent),radial-gradient(2px 2px at 62% 16%,#fff 60%,transparent),
+   radial-gradient(1.5px 1.5px at 78% 9%,#fff 60%,transparent),radial-gradient(2px 2px at 92% 28%,#fff 60%,transparent),
+   radial-gradient(1.5px 1.5px at 48% 40%,#fff 60%,transparent),radial-gradient(2px 2px at 14% 62%,#fff 60%,transparent),
+   linear-gradient(180deg,var(--night-top),var(--night-mid) 55%,var(--night-low))}
+#board{width:100%;height:100%;display:block}
+
+.cell rect{transition:fill .4s}
+.cell text{font-family:var(--font);font-weight:900}
+.cell.cur rect{animation:pulse .9s ease-in-out infinite alternate}
+@keyframes pulse{from{stroke:#e8912d;filter:drop-shadow(0 0 4px #ffb347)}to{stroke:#fff;filter:drop-shadow(0 0 16px #ffd27a)}}
+.bob,.float,.fly{transform-box:fill-box;transform-origin:center}
+.bob{animation:bob 2.6s ease-in-out infinite}
+.float{animation:float 4s ease-in-out infinite}
+.fly{animation:fly 5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(10px,-14px)}}
+@keyframes fly{0%,100%{transform:translate(0,0) rotate(-6deg)}50%{transform:translate(-26px,12px) rotate(8deg)}}
+
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+#overlay{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;padding:14px;
+  background:rgba(5,8,30,.74)}
+#overlay.show{display:flex}
+#overlay.light{background:rgba(5,8,30,.35)}
+.card{width:min(96vw,1040px);max-height:94vh;overflow:auto;padding:clamp(14px,2.4vw,30px);border-radius:26px;
+  background:linear-gradient(160deg,var(--card-a),var(--card-b));border:4px solid var(--gold);box-shadow:0 18px 60px rgba(0,0,0,.6)}
+.card h2{margin:0 0 6px;font-size:clamp(22px,3.6vw,46px);font-weight:900;line-height:1.15}
+.card p{margin:8px 0;font-size:clamp(16px,2.1vw,26px);line-height:1.4;font-weight:600}
+.meta{font-size:clamp(14px,1.8vw,22px);font-weight:800;color:var(--gold);margin-bottom:8px}
+.qtext{font-size:clamp(20px,3vw,40px);font-weight:900;line-height:1.25;margin:0 0 clamp(12px,2vw,22px)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,1.4vw,16px)}
+@media (max-width:720px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;font-family:var(--font);font-weight:800;
+  font-size:clamp(16px,2.2vw,28px);line-height:1.25;color:#2b1b57;background:var(--cream);border:0;border-bottom:6px solid #d9b56a;
+  border-radius:18px;padding:clamp(10px,1.6vw,18px);cursor:pointer;min-height:64px;transition:transform .12s,background .2s,opacity .3s}
+.opt:active{transform:scale(.98)}
+.badge{flex:0 0 auto;width:clamp(36px,4vw,50px);height:clamp(36px,4vw,50px);border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:clamp(18px,2.4vw,28px)}
+.opt:nth-child(1) .badge{background:#ef6a4c}.opt:nth-child(2) .badge{background:#1fa5cf}
+.opt:nth-child(3) .badge{background:#8d63d6}.opt:nth-child(4) .badge{background:#2fa863}
+.opt.ok{background:var(--ok);border-bottom-color:#3fb86b}
+.opt.bad{background:var(--bad);border-bottom-color:#e06b6b;animation:shake .4s}
+.opt.dim{opacity:.5}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.explain{margin-top:clamp(10px,1.6vw,18px);padding:clamp(10px,1.6vw,16px);border-radius:16px;background:rgba(255,255,255,.1);border-left:6px solid var(--gold);
+  font-size:clamp(15px,2vw,25px);font-weight:600;line-height:1.4}
+.explain b{color:var(--gold)}
+.btn{margin-top:clamp(10px,1.6vw,18px);font-family:var(--font);font-weight:900;font-size:clamp(18px,2.4vw,30px);color:#2b1b57;
+  background:linear-gradient(180deg,#ffd27a,#ffb347);border:0;border-bottom:6px solid #c97d17;border-radius:999px;padding:12px 34px;cursor:pointer}
+.btn.alt{background:linear-gradient(180deg,#d9c8ff,#a98bf0);border-bottom-color:#6f4fc2;margin-left:10px}
+.btn:active{transform:translateY(2px)}
+.center{text-align:center}
+.big{font-size:clamp(60px,10vw,120px);line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.chip{width:clamp(36px,4.6vw,56px);height:clamp(36px,4.6vw,56px);border-radius:12px;display:grid;place-items:center;font-weight:900;color:#2b1b57;font-size:clamp(16px,2.2vw,26px)}
+.chip.ok{background:var(--ok)}.chip.bad{background:var(--bad)}
+.score{font-size:clamp(34px,6vw,76px);font-weight:900;color:var(--gold);line-height:1.1}
+#banner{position:fixed;left:0;right:0;top:34%;z-index:8;text-align:center;font-size:clamp(40px,10vw,130px);font-weight:900;
+  color:#fff;text-shadow:0 0 24px #ffb347,0 6px 0 #c97d17;pointer-events:none;display:none}
+#banner.show{display:block;animation:pop 1s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.bob,.float,.fly,.cell.cur rect{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🎃 Оқыту әдістері: Түнгі жорық</h1>
+    <div class="hud">
+      <span class="pill" id="hudQ">Сұрақ 1 / 10</span>
+      <span class="pill" id="hudScore">⭐ 0</span>
+      <button class="ibtn" id="muteBtn" aria-label="Дыбыс">🔊</button>
+      <button class="ibtn" id="fsBtn" aria-label="Толық экран">⛶</button>
+    </div>
+  </header>
+  <main id="stage"><svg id="board" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-label="Ойын тақтасы"></svg></main>
+</div>
+<canvas id="fx"></canvas>
+<div id="banner">🎉 ФИНИШ! 🎉</div>
+<div id="overlay"><div class="card" id="card"></div></div>
+
+<script>
+/* ---------- СҰРАҚТАР (бірінші жауап — дұрыс, ойында араласады) ---------- */
+const Q=[
+{q:"Дидактикада «оқыту әдісі» ұғымы нені білдіреді?",
+ a:["Оқыту мақсатына жету үшін мұғалім мен оқушының өзара байланысты қызмет тәсілдерінің жүйесі","Оқу пәнінің мазмұнын құрайтын білім көлемі","Оқу-тәрбие процесін ұйымдастырудың сыртқы түрі (сабақ, экскурсия)","Оқушылардың жетістігін бағалау өлшемдерінің жиынтығы"],
+ e:"Әдіс — мақсатқа жету жолы: онда мұғалімнің оқытуы мен оқушының оқуы өзара байланыста жүреді."},
+{q:"Білім көзі бойынша оқыту әдістерінің дәстүрлі жіктемесі қай топтарды қамтиды?",
+ a:["Сөздік, көрнекілік, практикалық","Репродуктивті, эвристикалық, зерттеу","Жеке, жұптық, топтық","Индуктивті, дедуктивті, аналитикалық"],
+ e:"Білім көзіне қарай (сөз, көрнекі құрал, практикалық іс-әрекет) әдістер үш топқа бөлінеді (Е.И. Перовский, Е.Я. Голант)."},
+{q:"И.Я. Лернер мен М.Н. Скаткиннің таным іс-әрекетінің сипаты бойынша жіктемесіне қайсысы жатпайды?",
+ a:["Лабораториялық жұмыс","Репродуктивті әдіс","Ішінара-іздеу (эвристикалық) әдіс","Зерттеу әдісі"],
+ e:"Лабораториялық жұмыс — білім көзі бойынша жіктелген практикалық әдістер тобында. Лернер–Скаткин: түсіндірмелі-иллюстративті, репродуктивті, проблемалық баяндау, ішінара-іздеу, зерттеу."},
+{q:"Проблемалық баяндау әдісінің мәні неде?",
+ a:["Мұғалім проблема қойып, оны шешу логикасын өзі көрсетеді, ойлау үлгісін таныстырады","Оқушылар проблеманы толық өз бетінше зерттеп шешеді","Оқушылар дайын білімді жаттап, дәл қайталайды","Мұғалім дайын ақпаратты проблемасыз, тек баяндап береді"],
+ e:"Оқушы шешім жолын бақылап, ойлау логикасын меңгереді. Өз бетінше шешу — ішінара-іздеу және зерттеу әдістерінің үлесі."},
+{q:"Көрнекілік әдістер тобына қайсысы жатады?",
+ a:["Иллюстрация және демонстрация","Әңгіме және дәріс","Жаттығу және лабораториялық жұмыс","Түсіндіру және оқулықпен жұмыс"],
+ e:"Көрнекілік әдістер: иллюстрация (суреттер, плакаттар) және демонстрация (тәжірибе, үлгі, видео). Әңгіме мен дәріс — сөздік, жаттығу — практикалық."},
+{q:"Ю.К. Бабанскийдің жіктемесі бойынша оқыту әдістерінің үш тобы қайсы?",
+ a:["Ұйымдастыру-әрекеттік, ынталандыру-уәждеу, бақылау-бағалау","Сөздік, көрнекілік, практикалық","Репродуктивті, эвристикалық, зерттеу","Индуктивті, дедуктивті, аналитикалық"],
+ e:"Бабанский оқу іс-әрекетін ұйымдастыру, оны ынталандыру және бақылау-бағалау әдістерін бөліп көрсетті, яғни оқу процесінің құрылымына сүйенді."},
+{q:"Төмендегілердің қайсысы белсенді (интерактивті) оқыту әдісіне жатады?",
+ a:["Кейс-стади (нақты жағдайды топта талдау)","Дәріс-монолог","Мәтінді көшіріп жазу","Ережені жаттап айту"],
+ e:"Интерактивті әдістерде оқушылар бір-бірімен және мұғаліммен өзара әрекеттеседі: талқылайды, талдайды, шешім табады."},
+{q:"Индуктивті әдістің мәні қандай?",
+ a:["Жеке фактілерден жалпы қорытынды мен ережеге көшу","Жалпы ереже мен заңнан жеке жағдайларға көшу","Құбылысты бөліктерге бөліп зерттеу","Екі нысанды ұқсастығы мен айырмашылығы бойынша салыстыру"],
+ e:"Индукция: жекеден жалпыға. Дедукция — керісінше, жалпыдан жекеге."},
+{q:"«Оқыту тәсілі» мен «оқыту әдісі» арақатынасы қалай?",
+ a:["Тәсіл — әдістің құрамдас бөлігі, оның жеке қадамы","Тәсіл әдістен әрқашан кең ұғым","Олар толық синоним, айырмашылығы жоқ","Тәсіл — оқытуды ұйымдастыру формасы (сабақ, экскурсия)"],
+ e:"Әдіс бірнеше тәсілден тұрады. Бір тәсіл әртүрлі әдістерде қолданыла алады."},
+{q:"«Ойлан – жұптас – бөліс» стратегиясы қай әдіс тобына жатады?",
+ a:["Интерактивті (ынтымақтастықта оқыту) әдістеріне","Репродуктивті әдістерге","Көрнекілік әдістерге","Түсіндірмелі-иллюстративті әдіске"],
+ e:"Оқушы алдымен жеке ойланады, жұпта талқылайды, соңында сыныппен бөліседі. Оқу өзара әрекеттестік арқылы жүреді."}
+];
+const N=Q.length, LET=['A','B','C','D'];
+
+/* ---------- ДЫБЫС ---------- */
+let AC=null,master=null,muted=false,nb=null;
+function ac(){ if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.9;master.connect(AC.destination);}
+  if(AC.state==='suspended')AC.resume(); return AC; }
+function tone(f,d,type,v,t0,f2){ if(muted)return; const a=ac(),t=a.currentTime+(t0||0); const o=a.createOscillator(),g=a.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(f,t); if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v||.2,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+d+.05); }
+function noiseBuf(){ const a=ac(); if(!nb){nb=a.createBuffer(1,a.sampleRate*2,a.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;} return nb; }
+function noise(d,o){ if(muted)return; o=o||{}; const a=ac(),t=a.currentTime+(o.t0||0); const s=a.createBufferSource(); s.buffer=noiseBuf();
+  const f=a.createBiquadFilter(); f.type=o.type||'lowpass'; f.frequency.setValueAtTime(o.f1||1500,t); if(o.f2)f.frequency.exponentialRampToValueAtTime(o.f2,t+d);
+  const g=a.createGain(); g.gain.setValueAtTime(o.v||.4,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  s.connect(f); f.connect(g); let last=g;
+  if(a.createStereoPanner){const p=a.createStereoPanner();p.pan.value=o.pan||0;g.connect(p);last=p;}
+  last.connect(master); s.start(t,Math.random()*.5); s.stop(t+d+.05); }
+function sCorrect(){[523,659,784,1047].forEach((f,i)=>tone(f,.28,'triangle',.22,i*.1));}
+function sWrong(){tone(220,.5,'sawtooth',.16,0,110);tone(165,.5,'square',.08,.05,90);}
+function blip(){tone(520+Math.random()*90,.08,'square',.05);}
+function whistle(){tone(420,.8,'sine',.07,0,1900);}
+function boom(pan){ noise(1.3,{f1:1400,f2:60,v:.9,pan}); tone(110,.7,'sine',.6,0,32); noise(.22,{type:'highpass',f1:3500,v:.25,pan});
+  for(let k=0;k<9;k++)noise(.05,{type:'highpass',f1:4500,v:.14,t0:.12+Math.random()*.9,pan}); }
+function fanfare(){[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.3,'square',.1,i*.16)); tone(1047,.9,'triangle',.18,1.3); }
+function sStart(){[392,523,659].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.12));}
+
+/* ---------- ФЕЙЕРВЕРК ---------- */
+const cv=document.getElementById('fx'),cx=cv.getContext('2d');
+let W=0,H=0,rockets=[],parts=[],fxUntil=0,fxRun=false,lastLaunch=0,nextGap=0,lastT=0;
+function resize(){const d=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0);}
+addEventListener('resize',resize); resize();
+function launch(){ rockets.push({sx:W*(.1+Math.random()*.8),x:0,y:H,ty:H*(.12+Math.random()*.34),t:0,dur:.8+Math.random()*.35,hue:Math.floor(Math.random()*360)}); whistle(); }
+function explode(r){ boom(Math.max(-.9,Math.min(.9,(r.x/W)*2-1)));
+  const n=90+Math.floor(Math.random()*70), ring=Math.random()<.35, sp=ring?250:120+Math.random()*230, h2=(r.hue+70)%360;
+  for(let i=0;i<n;i++){const a=Math.PI*2*i/n+(ring?0:Math.random()*.3), v=ring?sp:sp*(.3+Math.random()*.7);
+    parts.push({x:r.x,y:r.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1.3+Math.random()*1.1,age:0,hue:Math.random()<.3?h2:r.hue,sz:2+Math.random()*2.2});} }
+function frame(now){
+  const dt=Math.min(.05,(now-lastT)/1000||.016); lastT=now;
+  cx.globalCompositeOperation='destination-out'; cx.fillStyle='rgba(0,0,0,.2)'; cx.fillRect(0,0,W,H);
+  cx.globalCompositeOperation='lighter';
+  if(fxRun&&now<fxUntil&&now-lastLaunch>nextGap){ launch(); if(Math.random()<.3)setTimeout(launch,120); lastLaunch=now; nextGap=240+Math.random()*420; }
+  for(let i=rockets.length-1;i>=0;i--){const r=rockets[i]; r.t+=dt; const k=Math.min(1,r.t/r.dur), e=1-(1-k)*(1-k);
+    r.x=r.sx+Math.sin(r.t*18)*3; r.y=H+(r.ty-H)*e;
+    cx.fillStyle='#fff'; cx.beginPath(); cx.arc(r.x,r.y,3,0,7); cx.fill();
+    parts.push({x:r.x,y:r.y,vx:(Math.random()-.5)*30,vy:40+Math.random()*40,life:.4,age:0,hue:40,sz:2});
+    if(k>=1){explode(r);rockets.splice(i,1);} }
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i]; p.age+=dt; if(p.age>=p.life){parts.splice(i,1);continue;}
+    const al=1-p.age/p.life, dr=Math.pow(.985,dt*60); p.vx*=dr; p.vy=p.vy*dr+150*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+    cx.fillStyle='hsla('+p.hue+',100%,'+(55+al*25)+'%,'+al+')'; cx.beginPath(); cx.arc(p.x,p.y,p.sz*(.4+al*.6),0,7); cx.fill(); }
+  if(now<fxUntil||rockets.length||parts.length){requestAnimationFrame(frame);} else {fxRun=false;cx.clearRect(0,0,W,H);}
+}
+function startFx(sec){ fxUntil=performance.now()+sec*1000; lastLaunch=0; nextGap=0; if(!fxRun){fxRun=true;lastT=performance.now();requestAnimationFrame(frame);} else {fxRun=true;} }
+
+/* ---------- ТАҚТА ---------- */
+const NS='http://www.w3.org/2000/svg';
+const svg=document.getElementById('board');
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+const ROAD_D='M 90 540 C 50 400 90 230 230 210 C 360 190 400 330 470 400 C 540 470 640 440 650 320 C 660 200 640 110 740 100 C 850 90 880 200 850 300 C 820 400 830 470 900 500';
+
+/* сурет-безендіру: ай, үй */
+const defs=el('defs',{},svg);
+const flt=el('filter',{id:'glow',x:'-50%',y:'-50%',width:'200%',height:'200%'},defs); el('feGaussianBlur',{stdDeviation:'14'},flt);
+el('circle',{cx:490,cy:112,r:120,fill:'#fff3b8',opacity:.35,filter:'url(#glow)'},svg);
+el('circle',{cx:490,cy:112,r:86,fill:'#fff6d6'},svg);
+const house=el('g',{fill:'#12122e'},svg);
+el('ellipse',{cx:490,cy:200,rx:130,ry:15},house);
+el('rect',{x:440,y:112,width:100,height:86},house); el('rect',{x:470,y:62,width:40,height:55},house);
+el('polygon',{points:'462,64 490,20 518,64'},house); el('rect',{x:436,y:92,width:26,height:30},house); el('polygon',{points:'432,94 449,66 466,94'},house);
+[[454,134],[506,134],[481,76],[444,100]].forEach(w=>el('rect',{x:w[0],y:w[1],width:13,height:20,rx:3,fill:'#ffcf4d'},svg));
+
+function deco(ch,x,y,size,cls,delay){const t=el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle'},svg);t.textContent=ch;
+  if(cls){t.setAttribute('class',cls);t.style.animationDelay=(delay||0)+'s';} return t;}
+[['🎃',70,135,72,'bob',0],['🎃',950,75,56,'bob',.7],['👻',330,100,66,'float',0],['👻',560,255,56,'float',1.2],
+ ['🦇',170,64,40,'fly',0],['🦇',720,48,36,'fly',1],['🦇',910,180,34,'fly',2],['🕸️',30,44,58,'',0],
+ ['🌲',190,440,66,'',0],['🌲',262,495,56,'',0],['🌲',135,512,52,'',0],['🪦',320,560,48,'',0],['🪦',385,552,44,'',0],
+ ['🧛',545,550,62,'bob',.4],['💀',748,540,62,'bob',.9],['🍲',690,570,48,'',0]].forEach(d=>deco.apply(null,d));
+
+/* жол */
+const roadOut=el('path',{d:ROAD_D,fill:'none',stroke:'#e8912d','stroke-width':88,'stroke-linecap':'round','stroke-linejoin':'round'},svg);
+const road=el('path',{d:ROAD_D,fill:'none',stroke:'#ffe9b8','stroke-width':74,'stroke-linecap':'round','stroke-linejoin':'round'},svg);
+const L=road.getTotalLength();
+const stopLens=[],tickLens=[];
+for(let i=0;i<N;i++)stopLens.push(L*(.025+i*(.95/(N-1))));
+const tilesG=el('g',{},svg), cellsG=el('g',{},svg);
+for(let i=0;i<N-1;i++){ for(let k=1;k<=3;k++){ const l=stopLens[i]+(stopLens[i+1]-stopLens[i])*k/4; tickLens.push(l);
+  const p=road.getPointAtLength(l),p2=road.getPointAtLength(l+2),ang=Math.atan2(p2.y-p.y,p2.x-p.x)*180/Math.PI;
+  el('rect',{x:-17,y:-17,width:34,height:34,rx:8,fill:'#fff1c9',stroke:'#e8912d','stroke-width':4,transform:'translate('+p.x+','+p.y+') rotate('+ang+')'},tilesG);} }
+const cells=stopLens.map((l,i)=>{ const p=road.getPointAtLength(l); tickLens.push(l);
+  const g=el('g',{class:'cell',transform:'translate('+p.x+','+p.y+')'},cellsG);
+  const r=el('rect',{x:-36,y:-36,width:72,height:72,rx:15,fill:'#fff1c9',stroke:'#e8912d','stroke-width':5},g);
+  const t=el('text',{x:0,y:14,'text-anchor':'middle','font-size':40,fill:'#5b2a9d'},g); t.textContent=i+1;
+  return {g,r,t,p}; });
+const pS=cells[0].p; const stT=el('text',{x:pS.x,y:pS.y+62,'text-anchor':'middle','font-size':22,'font-weight':900,fill:'#ffe9b8','font-family':'Nunito,sans-serif'},svg); stT.textContent='Старт';
+const pF=cells[N-1].p; const trophy=el('text',{x:pF.x,y:pF.y-48,'text-anchor':'middle','font-size':50,class:'bob'},svg); trophy.textContent='🏆';
+const tok=el('g',{},svg), tokIn=el('g',{class:'bob'},tok), tokT=el('text',{'text-anchor':'middle','font-size':60,x:0,y:0},tokIn); tokT.textContent='🧙‍♀️';
+
+let curLen=stopLens[0];
+function setTok(l){const p=road.getPointAtLength(l);tok.setAttribute('transform','translate('+p.x+','+(p.y-46)+')');curLen=l;}
+function moveTo(target,ms){return new Promise(function(res){const s=curLen,t0=performance.now();let last=s;
+  (function f(now){const k=Math.min(1,(now-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,l=s+(target-s)*e;setTok(l);
+    for(let i=0;i<tickLens.length;i++){const tl=tickLens[i];if((last<tl&&l>=tl)||(last>tl&&l<=tl))blip();}
+    last=l;if(k<1)requestAnimationFrame(f);else res();})(t0);});}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- ОЙЫН ЛОГИКАСЫ ---------- */
+const $=s=>document.querySelector(s), overlay=$('#overlay'), card=$('#card');
+let idx=0,score=0,results=[],locked=true,playing=false,opts=[];
+function hud(){ $('#hudQ').textContent='Сұрақ '+Math.min(idx+1,N)+' / '+N; $('#hudScore').textContent='⭐ '+score; }
+function markCur(){ cells.forEach((c,i)=>c.g.classList.toggle('cur',playing&&i===idx)); }
+function show(html,light){ card.innerHTML=html; overlay.classList.toggle('light',!!light); overlay.classList.add('show'); card.scrollTop=0; }
+function hide(){ overlay.classList.remove('show'); }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function showStart(){
+  playing=false; markCur();
+  show('<div class="center"><div class="big">🧙‍♀️🎃👻</div><h2>Оқыту әдістері: Түнгі жорық</h2>'+
+   '<p>Оқыту әдістері және оларды жіктеу бойынша 10 сұрақ. Әр жолда бір сұрақ: дұрыс жауап берсең, сиқыршы алға қарай жүреді. Финишке жеткенде салют болады!</p>'+
+   '<button class="btn" id="goBtn">▶ Ойынды бастау</button></div>');
+  $('#goBtn').onclick=startGame;
+}
+function startGame(){
+  ac(); sStart(); idx=0;score=0;results=[];playing=true;
+  cells.forEach(c=>{c.r.setAttribute('fill','#fff1c9');});
+  setTok(stopLens[0]); hud(); markCur(); hide(); setTimeout(askQ,600);
+}
+function askQ(){
+  const d=Q[idx]; opts=shuffle(d.a.map((t,i)=>({t:t,ok:i===0}))); locked=false; hud(); markCur();
+  show('<div class="meta">Сұрақ '+(idx+1)+' / '+N+'</div><p class="qtext">'+d.q+'</p><div class="opts">'+
+    opts.map((o,i)=>'<button class="opt" data-i="'+i+'"><span class="badge">'+LET[i]+'</span><span>'+o.t+'</span></button>').join('')+
+    '</div><div id="after"></div>');
+  card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+}
+function choose(i){
+  if(locked)return; locked=true;
+  const ok=opts[i].ok; const btns=card.querySelectorAll('.opt');
+  btns.forEach((b,j)=>{ if(opts[j].ok)b.classList.add('ok'); else if(j===i)b.classList.add('bad'); else b.classList.add('dim'); });
+  if(ok){score+=10;sCorrect();} else sWrong();
+  results.push(ok?'ok':'bad'); cells[idx].r.setAttribute('fill',ok?'#86efac':'#fca5a5'); hud();
+  const last=idx===N-1;
+  $('#after').innerHTML='<div class="explain"><b>'+(ok?'✅ Дұрыс!':'👻 Дұрыс жауап: '+LET[opts.findIndex(o=>o.ok)])+'</b> '+Q[idx].e+'</div>'+
+    '<div class="center"><button class="btn" id="nextBtn">'+(last?'🏁 Финишке!':'Әрі қарай ➜')+'</button></div>';
+  $('#nextBtn').onclick=next; $('#nextBtn').scrollIntoView({block:'nearest'});
+}
+async function next(){
+  if(locked===null)return; locked=null; hide();
+  if(idx===N-1){finish();return;}
+  idx++; hud(); markCur(); await moveTo(stopLens[idx],1500); await sleep(200); askQ();
+}
+async function finish(){
+  playing=false; markCur(); fanfare(); $('#banner').classList.add('show'); startFx(22);
+  await sleep(5200); $('#banner').classList.remove('show'); showResult();
+}
+function showResult(){
+  const ok=results.filter(r=>r==='ok').length;
+  const [ico,msg]= ok>=9?['🏆','Керемет! Сен — оқыту әдістерінің шебері!']: ok>=7?['🥇','Жарайсың! Білімің мықты!']: ok>=5?['🥈','Жаман емес! Бір қайталап шықсаң, тіпті жақсы болады.']:['📚','Тақырыпты қайталап, қайта көр — міндетті түрде шығады!'];
+  show('<div class="center"><div class="big">'+ico+'</div><h2>'+msg+'</h2><div class="score">'+ok+' / '+N+'</div>'+
+   '<p>Жиналған ұпай: ⭐ '+score+'</p><div class="chips">'+results.map((r,i)=>'<div class="chip '+r+'">'+(i+1)+'</div>').join('')+'</div>'+
+   '<p>Жасыл — дұрыс, қызғылт — қате жауап берілген сұрақтар.</p>'+
+   '<button class="btn" id="fxBtn">🎆 Салют</button><button class="btn alt" id="againBtn">↻ Қайта ойнау</button></div>',true);
+  $('#fxBtn').onclick=()=>{fanfare();startFx(10);}; $('#againBtn').onclick=startGame;
+}
+
+/* ---------- БАТЫРМАЛАР ---------- */
+$('#muteBtn').onclick=()=>{muted=!muted;$('#muteBtn').textContent=muted?'🔇':'🔊';if(!muted)ac();};
+$('#fsBtn').onclick=()=>{try{ if(document.fullscreenElement)document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(e){}};
+addEventListener('keydown',e=>{
+  if(!overlay.classList.contains('show'))return;
+  const k=e.key.toLowerCase(), m={'1':0,'2':1,'3':2,'4':3,'a':0,'b':1,'c':2,'d':3};
+  if(k in m && card.querySelector('.opt') && !locked){choose(m[k]);}
+  else if((k==='enter'||k===' ')&&$('#nextBtn')){e.preventDefault();$('#nextBtn').click();}
+});
+
+setTok(stopLens[0]); hud(); showStart();
+</script>
+</body>
+</html>
